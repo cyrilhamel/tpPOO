@@ -1,4 +1,5 @@
 <?php
+
 class PersonnagesManager{
     private $bdd;
 
@@ -14,8 +15,9 @@ class PersonnagesManager{
 
  // Méthode pour compter le nombre de personnage
  public function countPersonnages() {
-  return $this->bdd->querry('SELECT COUNT(*)FROM personnages')->fetchColumn();
-    
+  $req=$this->bdd->prepare('SELECT COUNT(*)FROM personnages');
+  $req->execute();
+  return $req->fetchColumn();
  }
 
 
@@ -44,18 +46,16 @@ public function existPersonnage($info){
 
 
  public function getListPersonnages($nom_personnage) {
-    $persos = [];
+    $persos = array();
     
     $req = $this->bdd->prepare('SELECT * FROM Personnages WHERE nom_personnage <> :nom_personnage ORDER BY nom_personnage');
-    $req->execute(array(':nom_personnage' => $nom_personnage));
-    $datas=$req->fetchall();
-
-    foreach ($datas as )
-
+    $req->execute(array(':nom_personnage'=>$nom_personnage));
+    while ($donnees=$req->fetch(PDO::FETCH_ASSOC)){
+      $persos[]=new Personnage($donnees['id_personnage'],$donnees['nom_personnage'],$donnees['degats_personnage']);
+    }
     return $persos;
     
-    $req->closeCursor();
-}
+    }
      
 
 
@@ -67,6 +67,7 @@ public function existPersonnage($info){
 $req = $this->bdd -> prepare ('INSERT INTO personnages SET nom_personnage = :nom_personnage');
 $req->bindValue (':nom_personnage',$perso->nom());
 $req->execute();
+$perso = new Personnage($this->bdd->lastInsertId(),$perso->nom(), 100);
 }
 
 
@@ -75,6 +76,10 @@ $req->execute();
 
 public function updatePersonnage(){
    // modifie un personnage
+   $req=$this->bdd->prepare('UPDATE personnages SET degats_personnage = :degats_personnage WHERE id_personnage = :id_personnage');
+   $req->bindValue(':degats_personnage', $perso->degats(), PDO::PARAM_INT);
+   $req->bindValue(':id_personnage',$perso->id(), PDO::PARAM_INT);
+   $req->execute();
 }
 
 
@@ -83,29 +88,28 @@ public function updatePersonnage(){
 
 public function deletePersonnage(Personnage $perso){
    //supprime un personnage
-   $this->bdd->exec('DELETE FROM personnages WHERE id=',$perso->id());
+   $req=$this->bdd->prepare('DELETE FROM personnages WHERE id=:id_personnage');
+   $req->execute(array(':id'=>$perso->id()));
 }
 
 
 
 
 
-public function getPersonnage($perso){
+public function getPersonnage($info){
    //recupere un personnage par son nom
-   if ( is_int ( $perso ) )
+   if (is_int($info))
  {
- $req = $this-> bdd-> query ( 'SELECT id , nom_personnage FROM
-personnages WHERE id = '. $perso ) ;
- $donnees = $req-> fetch ( PDO :: FETCH_ASSOC ) ;
-
- return new Personnage () ;
- }
- else
- {
- $req = $this -> bdd -> prepare ( 'SELECT id , nom_personnage FROM
-personnages WHERE nom_personnage = :nom_personnage ') ;
-$req -> execute ( array ( ':nom ' => $perso ) ) ;
- return new Personnage ( $req -> fetch ( PDO :: FETCH_ASSOC ) ) ; }
+ $req = $this-> bdd-> prepare('SELECT * FROM personnages WHERE id=:id_personnage');
+$req->execute(array(':id_personnage'=>$info));
+ $donnees = $req->fetch (PDO::FETCH_ASSOC);
+return new Personnage($donnees['id_personnage'],$donnees['nom_personnage'],$donnees['degats_personnage']);
+ }else{
+ $req = $this->bdd->prepare('SELECT * FROM personnages WHERE nom_personnage = :nom_personnage');
+$donnees=$req->execute();
+$donnees = $req->fetch(PDO::FETCH_ASSOC);
+ return new Personnage ($donnees['id_personnage'],$donnees['nom_personnage'],$donnees['degats_personnage']);
+}
 
 
 }
