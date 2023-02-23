@@ -43,35 +43,36 @@ public function existPersonnage($info){
      
    public function add ( Personnage $perso )
 {   //ajouter des personnages
-$req = $this->bdd -> prepare ('INSERT INTO personnages SET nom_personnage = :nom_personnage');
-$req->bindValue (':nom_personnage',$perso->nom());
+$req = $this->bdd -> prepare ('INSERT INTO personnages SET nom_personnage = :nom_personnage, degats_personnage = :degats_personnage');
+$req->bindValue (':nom_personnage',$perso->getNomPersonnage());
+$req->bindValue (':degats_personnage',$perso->getDegatsPersonnage());
 $req->execute();
-$perso = new Personnage($this->bdd->lastInsertId(),$perso->nom(), 100);
+$perso = new Personnage($this->bdd->lastInsertId(),$perso->getNomPersonnage(), 100);
 }
 
 public function updatePersonnage(Personnage $perso){
    // modifie un personnage
    $req=$this->bdd->prepare('UPDATE personnages SET degats_personnage = :degats_personnage WHERE id_personnage = :id_personnage');
-   $req->bindValue(':degats_personnage', $perso->degats(), PDO::PARAM_INT);
-   $req->bindValue(':id_personnage',$perso->id(), PDO::PARAM_INT);
+   $req->bindValue(':degats_personnage', $perso->getDegatsPersonnage(), PDO::PARAM_INT);
+   $req->bindValue(':id_personnage',$perso->getIdPersonnage(), PDO::PARAM_INT);
    $req->execute();
 }
 
 public function deletePersonnage(Personnage $perso){
    //supprime un personnage
-   $req=$this->bdd->prepare('DELETE FROM personnages WHERE id=:id_personnage');
-   $req->execute(array(':id'=>$perso->id()));
+   $req=$this->bdd->prepare('DELETE FROM personnages WHERE id_personnage=:id_personnage');
+   $req->execute(array(':id_personnage'=>$perso->getIdPersonnage()));
 }
 
 public function getPersonnage($info){
    //recupere un personnage par son nom
    if (is_int($info))
       {
-      $req = $this-> bdd-> prepare('SELECT * FROM personnages WHERE id=:id_personnage');
+      $req = $this-> bdd-> prepare('SELECT * FROM personnages WHERE id_personnage=:id_personnage');
       $req->execute(array(':id_personnage'=>$info));
       $donnees = $req->fetch (PDO::FETCH_ASSOC);
       return new Personnage($donnees['id_personnage'],$donnees['nom_personnage'],$donnees['degats_personnage']);
-      }else{
+   }else{
       $req = $this->bdd->prepare('SELECT * FROM personnages WHERE nom_personnage = :nom_personnage');
       $req->execute(array(':nom_personnage'=>$info));
       $donnees = $req->fetch(PDO::FETCH_ASSOC);

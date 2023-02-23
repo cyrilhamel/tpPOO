@@ -4,24 +4,11 @@ class Personnage{
     private $nomPersonnage;
     private $degatsPersonnage;
 
-    function __construct($idPersonnage,$nomPersonnage){
+    function __construct($idPersonnage,$nomPersonnage,$degatsPersonnage){
         $this->idPersonnage = $idPersonnage;
         $this->nomPersonnage = $nomPersonnage;
-        $this->degatsPersonnage = 100;
+        $this->degatsPersonnage = $degatsPersonnage;
     }
-
- public function id(){
-    return $this->idPersonnage;
-}
-
-public function nom(){
-    return $this->nomPersonnage;
-}
-
-public function degats(){
-    return $this->degatsPersonnage;
-}
-
     public function getIdPersonnage()
     {
         return $this->idPersonnage;
@@ -69,7 +56,7 @@ public function degats(){
 
         if($perso->getIdPersonnage() != $this->getIdPersonnage()){
             $perso->setDegatsPersonnage($perso->getDegatsPersonnage() - 5);
-            if($perso->getDegatsPersonnage() <= 5){
+            if($perso->getDegatsPersonnage() <= 0){
                 return "mort";
             }else{
                 return "degats";
