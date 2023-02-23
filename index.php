@@ -7,10 +7,6 @@
     <title>jeu de combat TP_POO</title>
 </head>
 <body>
-    <form action="" method="POST">
-        <input type="text" name="nom">
-        <input type="submit" value="nouveau personnage" name="ajouter">
-        
-    </form>
+
 </body>
 </html>
