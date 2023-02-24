@@ -131,9 +131,50 @@ if (isset($_POST['creer']) && isset($_POST['nom'])){
               $manager->deletePersonnage($persoAFrapper);
               
               break;
+
+              case "PersonneEndormie":
+                $message = 'Vous êtes endormi, vous ne pouvez pas frapper de personnage !';
+                break;
           }
         }
-      }
+      }elseif (isset($_GET['ensorceler'])) {
+        if (!isset($perso)) {
+            $message = 'Merci de créer un personnage ou de vous identifier.';
+        } else {
+            // Il faut bien vérifier que le personnage est un magicien.
+            if ($perso->type() != 'magicien') {
+                $message = 'Seuls les magiciens peuvent ensorceler des personnages !';
+            } else {
+                if (!$manager->exists((int) $_GET['ensorceler'])) {
+                    $message = 'Le personnage que vous voulez frapper n\'existe pas !';
+                } else {
+                    $persoAEnsorceler = $manager->get((int) $_GET['ensorceler']);
+                    $retour = $perso->lancerUnSort($persoAEnsorceler);
+    
+                    switch ($retour) {
+                        case "ErreurCible":
+                            $message = 'Mais... pourquoi voulez-vous vous ensorceler ???';
+                            break;
+    
+                        case "PersonneEnsorcelee":
+                            $message = 'Le personnage a bien été ensorcelé !';
+    
+                            $manager->update($perso);
+                            $manager->update($persoAEnsorceler);
+    
+                            break;
+    
+                        case "PasDeMagie":
+                            $message = 'Vous n\'avez pas de magie !';
+                            break;
+    
+                        case "PersonneEnsorcelee":
+                            $message = 'Vous êtes endormi, vous ne pouvez pas lancer de sort !';
+                            break;
+                    }
+                }
+            }
+        }
     }
     ?>
     <?php
@@ -147,8 +188,23 @@ if (isset($_POST['creer']) && isset($_POST['nom'])){
             <fieldset>
     <legend> Infos personnage </legend>
     <p>
+    Type : <?php echo ucfirst($perso->type()); ?><br />
     Nom:<?php echo htmlspecialchars ($perso->getNomPersonnage()); ?><br />
     Dégâts:<?php echo $perso->getDegatsPersonnage();?>
+    <?php
+                // On affiche l'atout du personnage suivant son type.
+                switch ($perso->type()) {
+                    case 'magicien':
+                        echo 'Magie : ';
+                        break;
+
+                    case 'guerrier':
+                        echo 'Protection : ';
+                        break;
+                }
+
+                echo $perso->atout();
+                ?>
     </p>
     </fieldset>
     
@@ -161,14 +217,18 @@ if (isset($_POST['creer']) && isset($_POST['nom'])){
      if (empty($persos))
      {
      echo 'Personne à frapper!';
-     }
+     }else {
+      if ($perso->estEndormi()) {
+          echo 'Un magicien vous a endormi ! Vous allez vous réveiller dans ', $perso->reveil(), '.';
     
-     else
-     {
+      }else{
      foreach ($persos as $unPerso)
      echo '<a href="?frapper=',$unPerso->getIdPersonnage(),'">',
     htmlspecialchars ($unPerso->getNomPersonnage()),'</a> (dégâts: ',
     $unPerso->getDegatsPersonnage(),')<br />';
+    if ($perso->type() == 'magicien') {
+      echo ' | <a href="?ensorceler=', $unPerso->id(), '">Lancer un sort</a>';
+  }
      }
      ?>
      </p>
@@ -182,6 +242,11 @@ if (isset($_POST['creer']) && isset($_POST['nom'])){
         <form action="" method="POST">
             <input type="text" name="nom">
             <input type="submit" value="Créer un personnage" name="creer">
+            Type :
+                <select name="type">
+                    <option value="magicien">Magicien</option>
+                    <option value="guerrier">Guerrier</option>
+                </select>
             <input type="submit" value="Utiliser un personnage" name="utiliser">
         </form>
         <?php
