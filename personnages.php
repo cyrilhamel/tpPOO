@@ -272,14 +272,91 @@ abstract class Personnage
 class Magicien extends Personnage{
 private $magie;
 
-public function lancerUnSort($perso){
-    $perso->frapper($this->magie);
-}
-}
+public function lancerUnSort(Personnage $perso){
+    if ($this->degats >= 0 && $this->degats <= 25)
+ {
+ $this-> atout = 4;
+
+
+ }
+ elseif ($this-> degats > 25 && $this-> degats <= 50)
+ {
+ $this-> atout = 3 ;
+ }
+ elseif ($this-> degats > 50 && $this-> degats <= 75)
+ {
+ $this-> atout = 2 ;
+ }
+ elseif ($this-> degats > 50 && $this-> degats <= 90)
+ {
+ $this-> atout = 1 ;
+ }
+ else
+ {
+ $this-> atout = 0 ;
+ }
+
+ if ($perso-> id == $this-> id)
+ {
+ return self :: cest_moi ;
+ }
+
+ if ($this-> atout == 0)
+ {
+ return self :: pas_de_magie ;
+ }
+
+ if ( $this-> estEndormi ())
+ {
+ return self :: perso_endormi ;
+ }
+
+ $perso-> timeEndormi = time() + ($this-> atout * 6) * 3600 ;
+
+ return self :: personnage_ensorcele ;
+ }
+ }
+
+
+
 
 class Guerrier extends Personnage{
+    public function recevoirDegats ()
+     {
+     if ($this-> degats >= 0 && $this-> degats <= 25 )
+     {
+     $this-> atout = 4;
+     }
+     elseif ( $this-> degats > 25 && $this-> degats <= 50)
+     {
+     $this-> atout = 3;
+     }
+     elseif ($this-> degats > 50 && $this-> degats <= 75)
+     {
+     $this-> atout = 2;
+     }
+     elseif( $this-> degats > 50 && $this-> degats <= 90)
+     {
+     $this-> atout = 1;
+     }
+     else
+     {
+     $this-> atout = 0;
+     }
+    
+     $this-> degats += 5 - $this-> atout ;
+    
+     // Si on a 100 de dégâts ou plus , on supprime le personnagede la BDD.
+     if ($this-> degats >= 100)
+     {
+     return self :: personnage_tue ;
+     }
+    
+     // Sinon , on se contente de mettre à jour les dégâts du personnage .
+     return self :: personnage_frappe ;
+     }
+    }
 
-}
 ?>
 
    

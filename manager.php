@@ -51,11 +51,15 @@ public function existPersonnage($info){
      
    public function add ( Personnage $perso )
 {   //ajouter des personnages
-$req = $this->bdd -> prepare ('INSERT INTO personnages_v2 SET nom = :nom, type_ = :type_');
+$req = $this->bdd -> prepare ('INSERT INTO personnage_v2 SET nom = :nom, type_ = :type_');
 $req->bindValue (':nom',$perso->nom());
 $req->bindValue (':type_',$perso->type());
 $req->execute();
-$perso = new Personnage($this->bdd->lastInsertId(),$perso->nom(), 100);
+$perso->hydrate(array(
+   'id_'=> $this->bdd->lastInsertId(),
+   'degats' => 0,
+   'atout' => 0
+));
 }
 
 public function updatePersonnage(Personnage $perso){
@@ -85,9 +89,16 @@ public function getPersonnage($info){
    }else{
       $req = $this->bdd->prepare('SELECT * FROM personnage_v2 WHERE nom = :nom');
       $req->execute(array(':nom'=>$info));
-      $donnees = $req->fetch(PDO::FETCH_ASSOC);
-      return new Personnage ($donnees['id_'],$donnees['nom'],$donnees['degats'],$donnees['timeEndormi'],$donnees['type_'],$donnees['atout']);
+      $perso = $req->fetch(PDO::FETCH_ASSOC);
+      
       }
+      switch ( $perso ['type_'])
+ {
+ case'guerrier': return new Guerrier ($perso) ;
+ case'magicien': return new Magicien ($perso) ;
+ default: return null ;
+ }
+ }
    }
-}
+
 ?>

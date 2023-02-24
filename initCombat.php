@@ -68,17 +68,30 @@ $manager = new PersonnagesManager($bdd);
 
 
 if (isset($_POST['creer']) && isset($_POST['nom'])){
+    switch ($_POST['type'])
+    {
+        case 'magicien' :
+            $perso = new Magicien(array('nom'=> $_POST['nom']));
+            break;
 
-    $perso = new Personnage (0,$_POST['nom'],100);
+        case 'guerrier' :
+            $perso = new Guerrier(array('nom'=> $_POST['nom']));
+            break;
+    }
+
+    if(isset($perso)){
+
+    
     $nom = $_POST['nom'];
     $_SESSION['nom']=$nom;
-        if ($manager-> existPersonnage($perso->getNomPersonnage())){
+        if ($manager-> existPersonnage($perso->nom())){
         $message='le nom du personnage est déjà pris';
         unset($perso);
         }else{
         $manager->add($perso);
         $message ='le personnage a été créer';
         }
+    }
     }
     
     if(isset ($_POST['utiliser']) && isset($_POST['nom'])){
@@ -94,8 +107,7 @@ if (isset($_POST['creer']) && isset($_POST['nom'])){
     
     elseif (isset($_GET['frapper'])) // Si on a cliqué sur un personnage pour le frapper.
     {
-        $user2 = $_GET['frapper'];
-            settype($user2, "integer");
+        
       if (!isset($perso))
       {
         $message = 'Merci de créer un personnage ou de vous identifier.';
@@ -103,7 +115,7 @@ if (isset($_POST['creer']) && isset($_POST['nom'])){
       
       else
       {
-        if (!$manager->existPersonnage($user2))
+        if (!$manager->existPersonnage((int)$_GET['frapper']))
         {
           $message = 'Le personnage que vous voulez frapper n\'existe pas !';
         }
@@ -123,7 +135,7 @@ if (isset($_POST['creer']) && isset($_POST['nom'])){
             case 'degats' :
               $message = 'Le personnage a bien été frappé !';
               $manager->updatePersonnage($persoAFrapper);
-              $persoAFrapper->getDegatsPersonnage();
+              $persoAFrapper->degats();
               break;
             
             case 'mort' :
@@ -137,7 +149,9 @@ if (isset($_POST['creer']) && isset($_POST['nom'])){
                 break;
           }
         }
-      }elseif (isset($_GET['ensorceler'])) {
+    }
+}
+      elseif (isset($_GET['ensorceler'])) {
         if (!isset($perso)) {
             $message = 'Merci de créer un personnage ou de vous identifier.';
         } else {
@@ -189,8 +203,8 @@ if (isset($_POST['creer']) && isset($_POST['nom'])){
     <legend> Infos personnage </legend>
     <p>
     Type : <?php echo ucfirst($perso->type()); ?><br />
-    Nom:<?php echo htmlspecialchars ($perso->getNomPersonnage()); ?><br />
-    Dégâts:<?php echo $perso->getDegatsPersonnage();?>
+    Nom:<?php echo htmlspecialchars ($perso->nom()); ?><br />
+    Dégâts:<?php echo $perso->degats();?>
     <?php
                 // On affiche l'atout du personnage suivant son type.
                 switch ($perso->type()) {
@@ -212,7 +226,7 @@ if (isset($_POST['creer']) && isset($_POST['nom'])){
     <legend> Quel joueur attaquer?</legend>
     <p>
     <?php
-    $persos= $manager-> getListPersonnages($perso->getNomPersonnage());
+    $persos= $manager-> getListPersonnages($perso->nom());
     
      if (empty($persos))
      {
@@ -223,30 +237,31 @@ if (isset($_POST['creer']) && isset($_POST['nom'])){
     
       }else{
      foreach ($persos as $unPerso)
-     echo '<a href="?frapper=',$unPerso->getIdPersonnage(),'">',
-    htmlspecialchars ($unPerso->getNomPersonnage()),'</a> (dégâts: ',
-    $unPerso->getDegatsPersonnage(),')<br />';
+     echo '<a href="?frapper=',$unPerso->id(),'">',
+    htmlspecialchars ($unPerso->nom()),'</a> (dégâts: ',
+    $unPerso->degats(),')<br />';
     if ($perso->type() == 'magicien') {
       echo ' | <a href="?ensorceler=', $unPerso->id(), '">Lancer un sort</a>';
   }
      }
+    }
+
      ?>
      </p>
      </fieldset>
      <?php
-     }
-     else
-     {
+     }else{
      ?>
         
         <form action="" method="POST">
             <input type="text" name="nom">
-            <input type="submit" value="Créer un personnage" name="creer">
             Type :
                 <select name="type">
                     <option value="magicien">Magicien</option>
                     <option value="guerrier">Guerrier</option>
                 </select>
+            <input type="submit" value="Créer un personnage" name="creer">
+            
             <input type="submit" value="Utiliser un personnage" name="utiliser">
         </form>
         <?php
